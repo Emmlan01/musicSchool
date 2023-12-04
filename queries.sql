@@ -2,26 +2,26 @@
  CREATE VIEW lessons_given_per_month AS
  SELECT
     TO_CHAR(time, 'Mon') AS "Month",
-	COUNT(l.lesson_id) AS "Total",
-    SUM(CASE WHEN il.lesson_id IS NOT NULL THEN 1 ELSE 0 END) AS "Individual",
-    SUM(CASE WHEN gl.lesson_id IS NOT NULL THEN 1 ELSE 0 END) AS "Group",
-    SUM(CASE WHEN el.lesson_id IS NOT NULL THEN 1 ELSE 0 END) AS "Ensemble"
+	COUNT(lesson_schedule.lesson_id) AS "Total",
+    SUM(CASE WHEN individual_lesson.lesson_id IS NOT NULL THEN 1 ELSE 0 END) AS "Individual",
+    SUM(CASE WHEN group_lesson.lesson_id IS NOT NULL THEN 1 ELSE 0 END) AS "Group",
+    SUM(CASE WHEN ensemble.lesson_id IS NOT NULL THEN 1 ELSE 0 END) AS "Ensemble"
     
 FROM
-    lesson_schedule l
+    lesson_schedule 
 LEFT JOIN
-    individual_lesson il ON l.lesson_id = il.lesson_id
+    individual_lesson ON lesson_schedule.lesson_id = individual_lesson.lesson_id
 LEFT JOIN
-    group_lesson gl ON l.lesson_id = gl.lesson_id
+    group_lesson  ON lesson_schedule.lesson_id = group_lesson.lesson_id
 LEFT JOIN
-    ensemble el ON l.lesson_id = el.lesson_id
+    ensemble  ON lesson_schedule.lesson_id = ensemble.lesson_id
 
 WHERE 
-  EXTRACT(YEAR FROM l.time) = 2023
+  EXTRACT(YEAR FROM lesson_schedule.time) = 2023
 GROUP BY 
-  TO_CHAR(l.time, 'Mon')
+  TO_CHAR(lesson_schedule.time, 'Mon')
 ORDER BY 
-  TO_CHAR(l.time, 'Mon')
+  TO_CHAR(lesson_schedule.time, 'Mon')
 
 
 /*Show how many students there are with no sibling, with one sibling, with two siblings, etc.*/
@@ -58,19 +58,19 @@ SELECT instructor.instructor_id AS "Instructor Id",
 
 /*List all ensembles held during the next week*/
 CREATE VIEW ensemble_next_week AS
-SELECT to_char(time, 'Day') as Day,  g.name AS Genre,
+SELECT to_char(time, 'Day') as Day,  genre.name AS Genre,
    
     CASE
-        WHEN CAST(el.number_of_students AS INT) = CAST(el.max_students AS INT) THEN 'No Seats'
-        WHEN CAST(el.number_of_students AS INT) >= CAST(el.max_students AS INT) - 2 THEN '1 or 2 Seats'
+        WHEN CAST(ensemble.number_of_students AS INT) = CAST(ensemble.max_students AS INT) THEN 'No Seats'
+        WHEN CAST(ensemble.number_of_students AS INT) >= CAST(ensemble.max_students AS INT) - 2 THEN '1 or 2 Seats'
         ELSE 'Many Seats'
     END AS "No of Free Seats"
 FROM 
-    ensemble el
+    ensemble
 JOIN 
-    genre g ON el.genre_id = g.genre_id
+    genre  ON ensemble.genre_id = genre.genre_id
 JOIN 
-    lesson_schedule l ON el.lesson_id = l.lesson_id
-	WHERE date_trunc('week', l.time) = date_trunc('week', now()) + interval '1 week' 
+    lesson_schedule  ON ensemble.lesson_id = lesson_schedule.lesson_id
+	WHERE date_trunc('week', lesson_schedule.time) = date_trunc('week', now()) + interval '1 week' 
 	ORDER BY 
     Time ASC, Genre ASC;
