@@ -41,9 +41,9 @@ ORDER BY siblings ASC;
 /*Instructor lessons*/
 
 	CREATE MATERIALIZED VIEW instructor_lessons  AS
-SELECT instructor.instructor_id,
-    person.first_name,
-    person.last_name, COUNT(lesson_schedule.lesson_id) AS lesson_count
+SELECT instructor.instructor_id AS "Instructor Id",
+    person.first_name as "First Name",
+    person.last_name as "Last Name", COUNT(lesson_schedule.lesson_id) AS "No of Lessons"
   FROM lesson_schedule
   INNER JOIN 
   instructor ON lesson_schedule.instructor_id = instructor.instructor_id
@@ -53,12 +53,12 @@ SELECT instructor.instructor_id,
     instructor.instructor_id, person.first_name, person.last_name
   HAVING COUNT(lesson_schedule.instructor_id) > 3
    ORDER BY
-  lesson_count DESC;
+  "No of Lessons" DESC;
 
 
 /*List all ensembles held during the next week*/
 CREATE VIEW ensemble_next_week AS
-SELECT to_char(time, 'Day') as Day,  g.name AS Genre, time,
+SELECT to_char(time, 'Day') as Day,  g.name AS Genre,
    
     CASE
         WHEN CAST(el.number_of_students AS INT) = CAST(el.max_students AS INT) THEN 'No Seats'
